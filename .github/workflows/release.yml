@@ -21,11 +21,21 @@ jobs:
         with:
           node-version: 20
 
-      # npm pack 触发 prepare -> scripts/build.mjs，构建 web/dist + server/dist 并打进 tgz。
+      # 版本一致性：tag 必须等于 v+package.json 版本，避免发出 version 与 tag 对不上的包。
+      - name: Assert tag matches package.json version
+        run: |
+          set -e
+          PKG_VER=$(node -p "require('./package.json').version")
+          TAG="${{ github.ref_name }}"
+          [ "$TAG" = "v$PKG_VER" ] || { echo "::error::tag $TAG 与 package.json 版本 v$PKG_VER 不一致（先 bump package.json 再打 tag）"; exit 1; }
+          echo "tag == v$PKG_VER OK"
+
+      # 显式 build 再 pack（已去掉 prepare 钩子），构建 web/dist + server/dist 并打进 tgz。
       # 重命名为无版本号的稳定资源名，供 releases/latest/download 直链。
       - name: Build & pack
         run: |
           set -e
+          npm run build
           npm pack
           mv film-studio-dashboard-*.tgz film-studio-dashboard.tgz
           ls -la film-studio-dashboard.tgz

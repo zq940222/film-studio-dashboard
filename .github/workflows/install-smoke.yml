@@ -29,10 +29,12 @@ jobs:
         with:
           node-version: 20
 
-      # npm pack 触发 prepare -> scripts/build.mjs，产出与发布相同的 tgz（含 web/dist + server/dist）。
-      # 若 Windows 上 spawn npm 的 shell:true 写错、或 tsc/vite 构建失败，这一步就会红。
-      - name: Pack (build + package, same tgz the release ships)
-        run: npm pack
+      # 显式 build 再 pack（已去掉 prepare 钩子），产出与发布相同的 tgz（含 web/dist + server/dist）。
+      # 若 Windows 上 spawn npm 的 shell:true 写错、或 tsc/vite 构建失败，build 这一步就会红。
+      - name: Build & pack (same tgz the release ships)
+        run: |
+          npm run build
+          npm pack
 
       - name: Global-install the tarball (same path as installing from the release URL)
         run: npm install -g ./film-studio-dashboard-*.tgz

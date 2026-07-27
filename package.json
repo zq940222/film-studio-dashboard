@@ -15,8 +15,7 @@
   "scripts": {
     "dev": "concurrently -n server,web -c blue,green \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
     "build": "node scripts/build.mjs",
-    "start": "node server/dist/server/src/index.js",
-    "prepare": "npm run build"
+    "start": "node server/dist/server/src/index.js"
   },
   "engines": {
     "node": ">=18"
