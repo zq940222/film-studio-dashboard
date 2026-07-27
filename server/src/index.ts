@@ -8,7 +8,28 @@ import { scanOverview, scanProject } from './scan.js';
 import { checkWorkspace } from './workspace.js';
 import type { StateResponse } from '../../shared/types.js';
 
-const VERSION = '0.1.0';
+/** 版本号读自根 package.json（发布产物在包根、dev 时在仓库根），与包/tag 保持一致。
+ *  按 name 匹配根包，跳过 dev 环境下先遇到的 server/package.json。 */
+function readVersion(): string {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 8; i += 1) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf-8')) as {
+        name?: string;
+        version?: string;
+      };
+      if (parsed.name === 'film-studio-dashboard') return parsed.version ?? '0.0.0';
+    } catch {
+      // 该层没有 package.json，继续向上找
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return '0.0.0';
+}
+
+const VERSION = readVersion();
 const PORT = Number(process.env.PORT ?? 5799);
 const HOST = '127.0.0.1'; // 只绑本机，绝不对外暴露
 
