@@ -45,10 +45,11 @@ jobs:
           set -e
           node -e "const fs=require('fs'),p=require('path'),cp=require('child_process');const root=cp.execSync('npm root -g').toString().trim();const g=p.join(root,'film-studio-dashboard');if(fs.lstatSync(g).isSymbolicLink())throw new Error('unexpected symlink install: '+g);console.log('real dir:',g)"
           film-studio-dashboard version
-          PORT=5799 film-studio-dashboard &
+          PORT=5799 film-studio-dashboard --no-open &
           SRV=$!
           curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:5799/api/state
           echo
           curl -sf http://127.0.0.1:5799/ | grep -q 'id="root"'
-          echo "live-URL install: API + SPA OK"
+          curl -sf http://127.0.0.1:5799/api/fs | grep -q '"entries"'
+          echo "live-URL install: API + SPA + fs picker OK"
           kill "$SRV" 2>/dev/null || true
