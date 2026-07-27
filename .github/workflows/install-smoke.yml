@@ -1,0 +1,52 @@
+name: install smoke test
+
+# 冒烟测试命令行安装路径：在 macOS 与 Windows 上跑一遍
+# 「打包（触发 prepare 本机构建）→ 全局安装 → 启动服务 → 打 API/前端」，
+# 专门兜住本地只有 macOS、没法实测的 Windows 分支（spawn npm.cmd 的 shell:true 等）。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    name: install & run (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    # 两个平台共用一套 bash 脚本（Windows 上走 git-bash），避免 PowerShell/bash 分叉。
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # npm pack 会触发 prepare -> scripts/build.mjs，即“安装即构建”的同一条路径。
+      # 若 Windows 上 spawn npm 的 shell:true 写错、或 tsc/vite 构建失败，这一步就会红。
+      - name: Pack (exercises build-on-install / prepare)
+        run: npm pack
+
+      - name: Global-install the packed tarball
+        run: npm install -g ./film-studio-dashboard-*.tgz
+
+      - name: Version subcommand resolves on PATH
+        run: film-studio-dashboard version
+
+      - name: Boot server and smoke-test API + SPA
+        run: |
+          set -e
+          PORT=5799 film-studio-dashboard &
+          SRV=$!
+          # 轮询等待起服务（Windows runner 可能偏慢），再验证 API 与前端首页
+          curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:5799/api/state
+          echo
+          curl -sf http://127.0.0.1:5799/ | grep -q 'id="root"'
+          echo "API + SPA served OK"
+          kill "$SRV" 2>/dev/null || true
