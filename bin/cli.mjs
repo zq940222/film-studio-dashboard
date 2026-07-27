@@ -35,9 +35,10 @@ function printHelp() {
 
 function runUpdate() {
   console.log('[film-studio-dashboard] 正在更新：重新从 GitHub 拉取并本机构建，请稍候…');
+  // --install-links 必须：否则 npm 会把全局包软链到一个用完即删的临时 git 克隆，装完即失效。
   // shell:true 必须：Windows 上 npm 即 npm.cmd，新版 Node 直接 spawn .cmd 会抛 EINVAL；
   // 加 shell 后 'npm' 跨平台可用。REPO 为固定的 github: 源，无空格、无注入风险。
-  const r = spawnSync('npm', ['install', '-g', REPO], { stdio: 'inherit', shell: true });
+  const r = spawnSync('npm', ['install', '-g', '--install-links', REPO], { stdio: 'inherit', shell: true });
   if (r.error) {
     console.error(`[film-studio-dashboard] 更新失败：${r.error.message}`);
     process.exit(1);

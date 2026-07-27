@@ -1,8 +1,12 @@
 name: install smoke test
 
-# 冒烟测试命令行安装路径：在 macOS 与 Windows 上跑一遍
-# 「打包（触发 prepare 本机构建）→ 全局安装 → 启动服务 → 打 API/前端」，
-# 专门兜住本地只有 macOS、没法实测的 Windows 分支（spawn npm.cmd 的 shell:true 等）。
+# 冒烟测试用户真正会敲的安装命令：在 macOS 与 Windows 上
+# 「npm i -g --install-links git+https://…#SHA（真实 git 直装，触发 prepare 本机构建）
+#  → 断言装成真实目录而非软链 → version → 启动服务 → 打 API/前端」。
+#
+# 为什么不用 npm pack + 安装 tarball：那条路会打包成普通 tarball 安装，
+# 恰好绕开了 npm 对「git 全局安装」的行为（把包软链到用完即删的临时克隆），
+# 从而给出假绿。必须走真实 git 路径 + --install-links 才能覆盖这个坑。
 
 on:
   push:
@@ -28,13 +32,22 @@ jobs:
         with:
           node-version: 20
 
-      # npm pack 会触发 prepare -> scripts/build.mjs，即“安装即构建”的同一条路径。
-      # 若 Windows 上 spawn npm 的 shell:true 写错、或 tsc/vite 构建失败，这一步就会红。
-      - name: Pack (exercises build-on-install / prepare)
-        run: npm pack
+      # 真实 git 路径：按被测 commit 的 SHA 从 GitHub 直装（远程 https，跨平台可靠）。
+      # --install-links 让 npm 装成真实副本而非软链——这正是本 PR 修复的核心。
+      - name: Install via the real git path (the documented command)
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -e
+          echo "npm i -g --install-links git+https://github.com/$REPO.git#$SHA"
+          npm i -g --install-links "git+https://github.com/$REPO.git#$SHA"
 
-      - name: Global-install the packed tarball
-        run: npm install -g ./film-studio-dashboard-*.tgz
+      # 关键断言：全局包必须是真实目录（不是软链到已清理的临时克隆），且 dist 已构建。
+      # 用 node 做判断，避开 Windows 下 `npm root -g` 返回反斜杠路径对 bash test 的坑。
+      - name: Assert a real install (not a dangling symlink) with built dist
+        run: |
+          node -e "const fs=require('fs'),p=require('path'),cp=require('child_process');const root=cp.execSync('npm root -g').toString().trim();const g=p.join(root,'film-studio-dashboard');if(fs.lstatSync(g).isSymbolicLink())throw new Error('DANGLING SYMLINK install: '+g);for(const f of ['web/dist/index.html','server/dist/server/src/index.js'])if(!fs.existsSync(p.join(g,f)))throw new Error('missing built file: '+f);console.log('real dir + dist present:',g)"
 
       - name: Version subcommand resolves on PATH
         run: film-studio-dashboard version

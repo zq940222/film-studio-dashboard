@@ -17,7 +17,7 @@
 
 ```bash
 # 安装（从 GitHub 直装，无需 npm 账号）
-npm i -g github:zq940222/film-studio-dashboard
+npm i -g --install-links github:zq940222/film-studio-dashboard
 
 # 运行（工作目录可省略，启动后在页面里选择）
 film-studio-dashboard "D:/你的创作工作区"
@@ -26,6 +26,8 @@ film-studio-dashboard "D:/你的创作工作区"
 # 更新到最新版（重新拉取 GitHub 并构建）
 film-studio-dashboard update
 ```
+
+> `--install-links` 不能省：否则 npm 会把全局包软链到一个用完即删的临时 git 克隆，装完即失效。`film-studio-dashboard update` 已自动带上该参数。
 
 打开 <http://127.0.0.1:5799>。最近使用的工作目录会记在 `~/.film-studio-dashboard/config.json`，下次一点即开。环境变量 `PORT` 可改端口。
 

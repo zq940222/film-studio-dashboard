@@ -17,7 +17,7 @@
 
 ```bash
 # インストール（GitHub から直接、npm アカウント不要）
-npm i -g github:zq940222/film-studio-dashboard
+npm i -g --install-links github:zq940222/film-studio-dashboard
 
 # 起動（作業ディレクトリは省略可。起動後に画面で選べます）
 film-studio-dashboard "D:/your-workspace"
@@ -26,6 +26,8 @@ film-studio-dashboard "D:/your-workspace"
 # 最新版に更新（GitHub から取り直してビルド）
 film-studio-dashboard update
 ```
+
+> `--install-links` は必須です：付けないと npm がグローバルパッケージを一時 git クローンにシンボリックリンクし、それが削除されてインストールが壊れます。`film-studio-dashboard update` はこのフラグを自動で付けます。
 
 <http://127.0.0.1:5799> を開きます。最後に使った作業ディレクトリは `~/.film-studio-dashboard/config.json` に記録され、次回はワンクリックで開けます。環境変数 `PORT` でポートを変更できます。
 

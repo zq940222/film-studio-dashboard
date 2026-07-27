@@ -17,7 +17,7 @@ Prerequisite: Node ≥ 18 installed. Installation builds on your machine, so the
 
 ```bash
 # Install (straight from GitHub, no npm account needed)
-npm i -g github:zq940222/film-studio-dashboard
+npm i -g --install-links github:zq940222/film-studio-dashboard
 
 # Run (the working directory is optional — you can pick it in the UI after launch)
 film-studio-dashboard "D:/your-workspace"
@@ -26,6 +26,8 @@ film-studio-dashboard "D:/your-workspace"
 # Update to the latest (re-pull from GitHub and rebuild)
 film-studio-dashboard update
 ```
+
+> `--install-links` is required: without it npm symlinks the global package to a temporary git clone that gets cleaned up, leaving a broken install. `film-studio-dashboard update` already passes the flag for you.
 
 Open <http://127.0.0.1:5799>. The most recently used working directory is remembered in `~/.film-studio-dashboard/config.json`, so it's one click next time. Set the `PORT` env var to change the port.
 
