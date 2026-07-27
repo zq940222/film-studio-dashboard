@@ -13,17 +13,17 @@
 
 ## インストールと使い方（コマンドライン、Windows を含む全プラットフォーム）
 
-前提：Node ≥ 18 がインストール済みであること。インストール時にローカルでビルドするため、初回は少し時間がかかります。
+前提：Node ≥ 18 がインストール済みであること。リリースはビルド済みなので、インストールは高速です。
 
 ```bash
-# インストール（GitHub から直接、npm アカウント不要）
-npm i -g github:zq940222/film-studio-dashboard
+# インストール（GitHub Release のビルド済みパッケージ、npm アカウント不要）
+npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
 
 # 起動（作業ディレクトリは省略可。起動後に画面で選べます）
 film-studio-dashboard "D:/your-workspace"
 # 短いエイリアスも使えます：fsd "D:/your-workspace"
 
-# 最新版に更新（GitHub から取り直してビルド）
+# 最新版に更新（同じ URL を取り直す）
 film-studio-dashboard update
 ```
 
