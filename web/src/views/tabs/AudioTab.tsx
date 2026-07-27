@@ -1,9 +1,18 @@
+import type { SyntheticEvent } from 'react';
 import type { ProjectDetail } from '../../../../shared/types';
 import { mediaUrl } from '../../api';
 
 export function AudioTab({ detail }: { detail: ProjectDetail }) {
   const eps = detail.episodesInfo.filter((e) => e.audio.length > 0);
   const total = eps.reduce((n, e) => n + e.audio.length, 0);
+
+  // 单条播放：某条开始播时，暂停页面上其他所有音频，避免多条同时响。
+  const stopOthers = (e: SyntheticEvent<HTMLAudioElement>) => {
+    const current = e.currentTarget;
+    document.querySelectorAll('audio').forEach((a) => {
+      if (a !== current) a.pause();
+    });
+  };
 
   if (total === 0) {
     return (
@@ -33,7 +42,13 @@ export function AudioTab({ detail }: { detail: ProjectDetail }) {
                   </span>
                 </div>
                 {/* preload=none：不一次性加载所有音频；点开才拉流（/media 支持 Range） */}
-                <audio controls preload="none" src={mediaUrl(a.path)} style={{ width: '100%' }} />
+                <audio
+                  controls
+                  preload="none"
+                  src={mediaUrl(a.path)}
+                  onPlay={stopOthers}
+                  style={{ width: '100%' }}
+                />
               </article>
             ))}
           </div>
