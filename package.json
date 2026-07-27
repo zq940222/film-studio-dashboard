@@ -1,6 +1,6 @@
 {
   "name": "film-studio-dashboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "film-studio 影视工作台的只读可观测仪表盘：选定工作目录，图形化观测项目进度/镜头/产物/积分",
   "bin": {
