@@ -26,6 +26,36 @@ function toRel(workspace: string, abs: string): string {
   return path.relative(workspace, abs).split(path.sep).join('/');
 }
 
+/**
+ * shotlist.json 的 shot.file 由插件写入，其路径基准未在契约里钦定（可能是纯文件名
+ * `shNN.mp4`、相对 ep 目录/项目目录、或工作区相对，甚至含反斜杠）。/media 需要的是
+ * 「工作区相对、正斜杠」路径。这里按多个基准探测真实存在的那个并归一化；找不到就退回
+ * 归一化原值（不劣于旧行为）。这是“镜头视频播放不了”的根因修复。
+ */
+function resolveShotFile(
+  workspace: string,
+  projectDir: string,
+  epDir: string,
+  file: unknown,
+): string | null {
+  if (typeof file !== 'string' || !file.trim()) return null;
+  const norm = file.trim().replace(/\\/g, '/'); // 兼容 Windows 写入的反斜杠
+  const bases = path.isAbsolute(norm)
+    ? [norm]
+    : [path.resolve(epDir, norm), path.resolve(projectDir, norm), path.resolve(workspace, norm)];
+  for (const abs of bases) {
+    try {
+      if (fs.statSync(abs).isFile()) {
+        const rel = toRel(workspace, abs);
+        if (!rel.startsWith('../')) return rel; // 必须在工作区内（/media 的 root=workspace）
+      }
+    } catch {
+      // 该基准不存在，试下一个
+    }
+  }
+  return norm; // 落盘位置没找到：退回归一化原值（与旧行为一致）
+}
+
 function safeReadJson<T>(file: string): T | null {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf-8')) as T;
@@ -92,7 +122,10 @@ function scanEpisodes(workspace: string, projectDir: string): EpisodeInfo[] {
     const epDir = path.join(footageDir, ep);
     const shotlistFile = path.join(epDir, 'shotlist.json');
     const shotlist = safeReadJson<{ ratio?: string; shots?: Shot[] }>(shotlistFile);
-    const shots = Array.isArray(shotlist?.shots) ? shotlist.shots : [];
+    const shots = (Array.isArray(shotlist?.shots) ? shotlist.shots : []).map((s) => ({
+      ...s,
+      file: resolveShotFile(workspace, projectDir, epDir, s.file),
+    }));
     const srtFiles = listFiles(workspace, epDir, new Set(['.srt']));
     const videos = listFiles(workspace, epDir, new Set(['.mp4', '.mov', '.webm']));
     const bgm = listFiles(workspace, path.join(epDir, 'bgm'), AUDIO_EXT);
