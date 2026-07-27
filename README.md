@@ -7,7 +7,7 @@ A **read-only observability dashboard** for the [film-studio](https://github.com
 ## Boundaries (carved on the door frame)
 
 - **Read-only + light operations**: the only non-read actions are "copy a suggested command" and "refresh credits" (the read-only `dreamina user_credit` query).
-- **Never triggers generation, never confirms a gate, never writes back any file in the workspace** — the four approval gates are always confirmed inside the Claude Code conversation.
+- **Never triggers generation, never confirms an approval gate, never writes back any file in the workspace** — the four approval gates are always confirmed inside the Claude Code conversation.
 - The server binds `127.0.0.1` only, and the media endpoint has path-traversal protection.
 - Its only contract with the plugin is the workspace file format (`project.json` / `shotlist.json` / the directory layout); see ADR-0001 in the plugin repo.
 
