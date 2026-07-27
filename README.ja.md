@@ -36,10 +36,11 @@ film-studio-dashboard update
 ```bash
 git clone https://github.com/zq940222/film-studio-dashboard.git
 cd film-studio-dashboard
-npm install          # web/dist と server/dist を自動ビルド（prepare フック）
+npm install
+npm run build        # web/dist と server/dist をビルド
 npm start -- "D:/your-workspace"
 
-npm run dev          # 開発モード：server(5799, tsx watch) + web(5173, vite) を並行実行。フロントは /api と /media をプロキシ
+npm run dev          # 開発モード（ビルド不要、その場でコンパイル）：server(5799, tsx watch) + web(5173, vite) を並行実行。フロントは /api と /media をプロキシ
 ```
 
 ## 技術スタック

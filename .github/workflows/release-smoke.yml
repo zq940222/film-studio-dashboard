@@ -1,0 +1,54 @@
+name: release install smoke
+
+# 发布后闭环：用 README 里那条真实的 live URL，在 macOS 与 Windows 上装 + 跑一遍。
+# 覆盖 install-smoke（用本地 tgz）唯一没覆盖的一环：npm 拉 GitHub releases/latest/download
+# 的 https 资源并跟随 302 —— 尤其是 Windows 上这条组合。
+#
+# 触发：release 工作流跑完后自动触发；也支持手动 dispatch，可随时对当前 latest 版重测。
+
+on:
+  workflow_run:
+    workflows: ["release"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    # 手动触发时直接跑；由 release 触发时仅在其成功后跑。
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    name: live-URL install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      # 装的是发布产物，无需 checkout 源码。用文档里那条一字不差的命令。
+      - name: Install from the live release URL (verbatim documented command)
+        run: |
+          set -e
+          URL="https://github.com/${{ github.repository }}/releases/latest/download/film-studio-dashboard.tgz"
+          echo "installing: $URL"
+          # 等 latest 指针/资源传播（通常即时），可达再装
+          for i in $(seq 1 20); do curl -fsSL -o /dev/null "$URL" && break || sleep 3; done
+          npm i -g "$URL"
+
+      - name: Assert real dir + version + boot smoke
+        run: |
+          set -e
+          node -e "const fs=require('fs'),p=require('path'),cp=require('child_process');const root=cp.execSync('npm root -g').toString().trim();const g=p.join(root,'film-studio-dashboard');if(fs.lstatSync(g).isSymbolicLink())throw new Error('unexpected symlink install: '+g);console.log('real dir:',g)"
+          film-studio-dashboard version
+          PORT=5799 film-studio-dashboard &
+          SRV=$!
+          curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:5799/api/state
+          echo
+          curl -sf http://127.0.0.1:5799/ | grep -q 'id="root"'
+          echo "live-URL install: API + SPA OK"
+          kill "$SRV" 2>/dev/null || true

@@ -36,10 +36,11 @@ film-studio-dashboard update
 ```bash
 git clone https://github.com/zq940222/film-studio-dashboard.git
 cd film-studio-dashboard
-npm install          # 会自动构建 web/dist 与 server/dist（prepare 钩子）
+npm install
+npm run build        # 构建 web/dist 与 server/dist
 npm start -- "D:/你的创作工作区"
 
-npm run dev          # 开发模式：server(5799, tsx watch) + web(5173, vite) 并行，前端代理 /api 与 /media
+npm run dev          # 开发模式（免构建，实时编译）：server(5799, tsx watch) + web(5173, vite) 并行，前端代理 /api 与 /media
 ```
 
 ## 技术栈

@@ -36,10 +36,11 @@ Other subcommands: `film-studio-dashboard version` / `help`.
 ```bash
 git clone https://github.com/zq940222/film-studio-dashboard.git
 cd film-studio-dashboard
-npm install          # auto-builds web/dist and server/dist (via the prepare hook)
+npm install
+npm run build        # builds web/dist and server/dist
 npm start -- "D:/your-workspace"
 
-npm run dev          # dev mode: server (5799, tsx watch) + web (5173, vite) in parallel; the frontend proxies /api and /media
+npm run dev          # dev mode (no build needed, live compile): server (5799, tsx watch) + web (5173, vite) in parallel; the frontend proxies /api and /media
 ```
 
 ## Tech stack
