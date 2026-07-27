@@ -13,17 +13,17 @@ A **read-only observability dashboard** for the [film-studio](https://github.com
 
 ## Install & use (command line, all platforms incl. Windows)
 
-Prerequisite: Node ≥ 18 installed. Installation builds on your machine, so the first install is a little slow.
+Prerequisite: Node ≥ 18 installed. The release ships prebuilt, so installation is quick.
 
 ```bash
-# Install (straight from GitHub, no npm account needed)
-npm i -g github:zq940222/film-studio-dashboard
+# Install (from the GitHub release — prebuilt, no npm account needed)
+npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
 
 # Run (the working directory is optional — you can pick it in the UI after launch)
 film-studio-dashboard "D:/your-workspace"
 # The short alias works too: fsd "D:/your-workspace"
 
-# Update to the latest (re-pull from GitHub and rebuild)
+# Update to the latest release (re-pulls the same URL)
 film-studio-dashboard update
 ```
 

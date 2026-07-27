@@ -1,8 +1,9 @@
 name: install smoke test
 
-# 冒烟测试命令行安装路径：在 macOS 与 Windows 上跑一遍
-# 「打包（触发 prepare 本机构建）→ 全局安装 → 启动服务 → 打 API/前端」，
-# 专门兜住本地只有 macOS、没法实测的 Windows 分支（spawn npm.cmd 的 shell:true 等）。
+# 冒烟测试「发布安装」所用的机制：npm pack（触发 prepare 本机构建，产出与 Release 相同的 tgz）
+# → 全局安装该 tgz（真实副本，与用户从 Release URL 安装同一条路径）→ 断言真实目录而非软链
+# → version → 启动服务打 API/前端。在 macOS 与 Windows 上各跑一遍。
+# 注：不测 git 全局安装——npm 对 git 全局安装跨 OS/npm 行为不一（软链/ENOTEMPTY），发布改走 tgz 规避。
 
 on:
   push:
@@ -28,13 +29,19 @@ jobs:
         with:
           node-version: 20
 
-      # npm pack 会触发 prepare -> scripts/build.mjs，即“安装即构建”的同一条路径。
+      # npm pack 触发 prepare -> scripts/build.mjs，产出与发布相同的 tgz（含 web/dist + server/dist）。
       # 若 Windows 上 spawn npm 的 shell:true 写错、或 tsc/vite 构建失败，这一步就会红。
-      - name: Pack (exercises build-on-install / prepare)
+      - name: Pack (build + package, same tgz the release ships)
         run: npm pack
 
-      - name: Global-install the packed tarball
+      - name: Global-install the tarball (same path as installing from the release URL)
         run: npm install -g ./film-studio-dashboard-*.tgz
+
+      # 断言全局包是真实目录（不是软链）、且 dist 已构建。用 node 判断，避开 Windows 下
+      # `npm root -g` 返回反斜杠路径对 bash test 的坑。
+      - name: Assert a real install (not a symlink) with built dist
+        run: |
+          node -e "const fs=require('fs'),p=require('path'),cp=require('child_process');const root=cp.execSync('npm root -g').toString().trim();const g=p.join(root,'film-studio-dashboard');if(fs.lstatSync(g).isSymbolicLink())throw new Error('unexpected symlink install: '+g);for(const f of ['web/dist/index.html','server/dist/server/src/index.js'])if(!fs.existsSync(p.join(g,f)))throw new Error('missing built file: '+f);console.log('real dir + dist present:',g)"
 
       - name: Version subcommand resolves on PATH
         run: film-studio-dashboard version

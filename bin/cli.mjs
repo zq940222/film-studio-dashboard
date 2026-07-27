@@ -8,7 +8,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); // .../<pkg>/bin
 const PKG_ROOT = path.resolve(HERE, '..');
-const REPO = 'github:zq940222/film-studio-dashboard'; // 更新时重新拉取的源
+// 更新时重新拉取的发布产物：GitHub Release 的稳定「最新版」资源（随最新 tag 自动指向）
+const RELEASE_URL =
+  'https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz';
 
 function pkgVersion() {
   try {
@@ -34,10 +36,10 @@ function printHelp() {
 }
 
 function runUpdate() {
-  console.log('[film-studio-dashboard] 正在更新：重新从 GitHub 拉取并本机构建，请稍候…');
-  // shell:true 必须：Windows 上 npm 即 npm.cmd，新版 Node 直接 spawn .cmd 会抛 EINVAL；
-  // 加 shell 后 'npm' 跨平台可用。REPO 为固定的 github: 源，无空格、无注入风险。
-  const r = spawnSync('npm', ['install', '-g', REPO], { stdio: 'inherit', shell: true });
+  console.log('[film-studio-dashboard] 正在更新：从 GitHub Release 拉取最新版并安装，请稍候…');
+  // shell:true 必须：Windows 上 npm 即 npm.cmd，新版 Node 直接 spawn .cmd 会抛 EINVAL；加 shell 后 'npm' 跨平台可用。
+  // 装的是 Release 里的预构建 tgz（真实副本、无需 --install-links、也不在本机构建），URL 固定无注入风险。
+  const r = spawnSync('npm', ['install', '-g', RELEASE_URL], { stdio: 'inherit', shell: true });
   if (r.error) {
     console.error(`[film-studio-dashboard] 更新失败：${r.error.message}`);
     process.exit(1);

@@ -13,17 +13,17 @@
 
 ## 安装与使用（命令行，全平台含 Windows）
 
-前置：本机已装 Node ≥ 18。安装时会在本机自动构建，首次稍慢。
+前置：本机已装 Node ≥ 18。发布包是预构建的，安装很快。
 
 ```bash
-# 安装（从 GitHub 直装，无需 npm 账号）
-npm i -g github:zq940222/film-studio-dashboard
+# 安装（从 GitHub Release 装预构建包，无需 npm 账号）
+npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
 
 # 运行（工作目录可省略，启动后在页面里选择）
 film-studio-dashboard "D:/你的创作工作区"
 # 短别名亦可：fsd "D:/你的创作工作区"
 
-# 更新到最新版（重新拉取 GitHub 并构建）
+# 更新到最新版（重新拉取同一条 Release URL）
 film-studio-dashboard update
 ```
 

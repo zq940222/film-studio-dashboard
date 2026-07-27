@@ -1,0 +1,36 @@
+name: release
+
+# 打 tag（v*）即发布：CI 构建 + npm pack，产物重命名为稳定资源名后附到 GitHub Release。
+# 安装与自更新都走 releases/latest/download/film-studio-dashboard.tgz 这条稳定 URL。
+# tgz 是平台无关的（仅含 JS/CSS 预构建产物，运行期只依赖纯 JS 的 express），linux 上构建即可通用。
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # 创建 Release 需要
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      # npm pack 触发 prepare -> scripts/build.mjs，构建 web/dist + server/dist 并打进 tgz。
+      # 重命名为无版本号的稳定资源名，供 releases/latest/download 直链。
+      - name: Build & pack
+        run: |
+          set -e
+          npm pack
+          mv film-studio-dashboard-*.tgz film-studio-dashboard.tgz
+          ls -la film-studio-dashboard.tgz
+
+      - name: Create GitHub Release and attach tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" film-studio-dashboard.tgz --title "${{ github.ref_name }}" --generate-notes
