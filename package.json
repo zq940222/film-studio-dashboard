@@ -3,14 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "description": "film-studio 影视工作台的只读可观测仪表盘：选定工作目录，图形化观测项目进度/镜头/产物/积分",
-  "workspaces": [
-    "server",
-    "web"
+  "bin": {
+    "film-studio-dashboard": "bin/cli.mjs",
+    "fsd": "bin/cli.mjs"
+  },
+  "files": [
+    "bin/",
+    "server/dist/",
+    "web/dist/"
   ],
   "scripts": {
-    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
-    "build": "npm run build -w web && npm run build -w server",
-    "start": "node server/dist/server/src/index.js"
+    "dev": "concurrently -n server,web -c blue,green \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
+    "build": "node scripts/build.mjs",
+    "start": "node server/dist/server/src/index.js",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

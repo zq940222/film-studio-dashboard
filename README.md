@@ -9,20 +9,35 @@
 - 服务只绑定 `127.0.0.1`，媒体接口有路径穿越防护
 - 与插件的唯一契约是工作区文件格式（`project.json` / `shotlist.json` / 目录规范），见插件仓 ADR-0001
 
-## 使用
+## 安装与使用（命令行，全平台含 Windows）
+
+前置：本机已装 Node ≥ 18。安装时会在本机自动构建，首次稍慢。
 
 ```bash
-npm install
-npm run build
-npm start -- "D:/你的创作工作区"   # 路径可省略，启动后在页面里选择
+# 安装（从 GitHub 直装，无需 npm 账号）
+npm i -g github:zq940222/film-studio-dashboard
+
+# 运行（工作目录可省略，启动后在页面里选择）
+film-studio-dashboard "D:/你的创作工作区"
+# 短别名亦可：fsd "D:/你的创作工作区"
+
+# 更新到最新版（重新拉取 GitHub 并构建）
+film-studio-dashboard update
 ```
 
-打开 <http://127.0.0.1:5799>。最近使用的工作目录会记在 `~/.film-studio-dashboard/config.json`，下次一点即开。
+打开 <http://127.0.0.1:5799>。最近使用的工作目录会记在 `~/.film-studio-dashboard/config.json`，下次一点即开。环境变量 `PORT` 可改端口。
 
-## 开发
+其他子命令：`film-studio-dashboard version` / `help`。
+
+## 从源码运行 / 开发
 
 ```bash
-npm run dev   # server(5799, tsx watch) + web(5173, vite) 并行，前端代理 /api 与 /media
+git clone https://github.com/zq940222/film-studio-dashboard.git
+cd film-studio-dashboard
+npm install          # 会自动构建 web/dist 与 server/dist（prepare 钩子）
+npm start -- "D:/你的创作工作区"
+
+npm run dev          # 开发模式：server(5799, tsx watch) + web(5173, vite) 并行，前端代理 /api 与 /media
 ```
 
 ## 技术栈
