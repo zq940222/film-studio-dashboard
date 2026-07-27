@@ -137,6 +137,24 @@ export interface StateResponse {
   version: string;
 }
 
+/** 目录浏览：仅用于在页面里挑选工作目录，只列子目录名、不涉及文件内容 */
+export interface FsEntry {
+  name: string;
+  path: string;
+  /** 该子目录看起来是个 film-studio 工作区（含 projects/） */
+  isWorkspace: boolean;
+}
+
+export interface FsListResponse {
+  /** 当前目录绝对路径 */
+  path: string;
+  /** 上一级目录；已是文件系统根时为 null */
+  parent: string | null;
+  /** 当前目录本身是否为有效工作区 */
+  isWorkspace: boolean;
+  entries: FsEntry[];
+}
+
 export interface CreditResponse {
   ok: boolean;
   balance: number | null;

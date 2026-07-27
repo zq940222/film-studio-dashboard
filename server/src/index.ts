@@ -1,5 +1,7 @@
 import express from 'express';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig, rememberWorkspace, type UserConfig } from './config.js';
@@ -135,6 +137,48 @@ app.get('/api/credit', async (_req, res) => {
   res.json(await fetchCredit());
 });
 
+// ---------- 目录浏览（只读，仅列子目录名，供页面挑选工作目录用） ----------
+function hasProjects(dir: string): boolean {
+  try {
+    return fs.statSync(path.join(dir, 'projects')).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+app.get('/api/fs', (req, res) => {
+  const raw = typeof req.query.dir === 'string' && req.query.dir.trim() ? req.query.dir : os.homedir();
+  const dir = path.resolve(raw);
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(dir);
+  } catch {
+    return res.status(404).json({ error: '目录不存在或不可访问' });
+  }
+  if (!stat.isDirectory()) return res.status(400).json({ error: '路径不是目录' });
+
+  let dirents: fs.Dirent[];
+  try {
+    dirents = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return res.status(403).json({ error: '目录不可读' });
+  }
+  const entries = dirents
+    .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+    .map((e) => {
+      const full = path.join(dir, e.name);
+      return { name: e.name, path: full, isWorkspace: hasProjects(full) };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const parent = path.dirname(dir);
+  return res.json({
+    path: dir,
+    parent: parent === dir ? null : parent, // 到达文件系统根时 dirname 等于自身
+    isWorkspace: hasProjects(dir),
+    entries,
+  });
+});
+
 // ---------- 媒体服务（sendFile + root 自带 Range 与穿越防护） ----------
 app.get('/media/*', (req, res) => {
   const ws = activeWorkspace();
@@ -165,7 +209,23 @@ if (webDist) {
   });
 }
 
+/** 用系统默认浏览器打开 URL；失败静默（绝不影响服务）。仅在 CLI 设置 FSD_OPEN=1 时调用。 */
+function openBrowser(url: string): void {
+  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open';
+  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
+  try {
+    const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
+    child.on('error', () => {}); // 没有浏览器/命令时忽略
+    child.unref();
+  } catch {
+    /* 忽略：打开浏览器只是便利，失败不影响服务 */
+  }
+}
+
 app.listen(PORT, HOST, () => {
-  console.log(`[film-studio-dashboard] http://${HOST}:${PORT}  workspace=${config.active ?? '(未选择)'}`);
+  const url = `http://${HOST}:${PORT}`;
+  console.log(`[film-studio-dashboard] ${url}  workspace=${config.active ?? '(未选择)'}`);
   if (!webDist) console.log('[film-studio-dashboard] 未发现 web/dist，当前为纯 API 模式（开发时请另起 vite）');
+  // 仅 CLI 默认启动会设置 FSD_OPEN；dev/npm start 不设，避免 watch 反复弹窗
+  if (process.env.FSD_OPEN === '1' && webDist) openBrowser(url);
 });

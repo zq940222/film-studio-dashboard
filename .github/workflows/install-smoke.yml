@@ -48,14 +48,15 @@ jobs:
       - name: Version subcommand resolves on PATH
         run: film-studio-dashboard version
 
-      - name: Boot server and smoke-test API + SPA
+      - name: Boot server and smoke-test API + SPA + fs picker
         run: |
           set -e
-          PORT=5799 film-studio-dashboard &
+          PORT=5799 film-studio-dashboard --no-open &
           SRV=$!
-          # 轮询等待起服务（Windows runner 可能偏慢），再验证 API 与前端首页
+          # 轮询等待起服务（Windows runner 可能偏慢），再验证 API、前端首页、目录浏览接口
           curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:5799/api/state
           echo
           curl -sf http://127.0.0.1:5799/ | grep -q 'id="root"'
-          echo "API + SPA served OK"
+          curl -sf http://127.0.0.1:5799/api/fs | grep -q '"entries"'
+          echo "API + SPA + fs picker served OK"
           kill "$SRV" 2>/dev/null || true

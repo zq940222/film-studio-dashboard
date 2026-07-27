@@ -24,15 +24,18 @@ function printHelp() {
   console.log(`film-studio-dashboard v${pkgVersion()} — film-studio 影视工作台只读仪表盘
 
 用法:
-  film-studio-dashboard [工作目录]        启动仪表盘（默认 http://127.0.0.1:5799）
+  film-studio-dashboard [工作目录]        启动仪表盘并自动打开浏览器（默认 http://127.0.0.1:5799）
   film-studio-dashboard --workspace <路径>  同上，显式指定工作目录
-  film-studio-dashboard update            更新到最新版（重新从 GitHub 拉取并构建）
+  film-studio-dashboard --no-open         启动但不自动打开浏览器
+  film-studio-dashboard update            更新到最新发布版
   film-studio-dashboard version           显示版本号
   film-studio-dashboard help              显示本帮助
 
 说明:
-  · 工作目录可省略，启动后在页面里选择；最近用过的目录记在 ~/.film-studio-dashboard/config.json
-  · 环境变量 PORT 可改端口（默认 5799），服务只绑定 127.0.0.1`);
+  · 工作目录可省略——启动后在页面里“浏览…”挑选，或从最近用过的列表里点；
+    最近用过的目录记在 ~/.film-studio-dashboard/config.json
+  · 环境变量 PORT 可改端口（默认 5799），服务只绑定 127.0.0.1
+  · 环境变量 FSD_NO_OPEN=1 等同 --no-open`);
 }
 
 function runUpdate() {
@@ -56,7 +59,12 @@ if (sub === 'update' || sub === 'upgrade') {
 } else if (sub === 'help' || sub === '--help' || sub === '-h') {
   printHelp();
 } else {
-  // 默认：启动服务。index.js 顶层会自行 app.listen 并读取 process.argv 里的工作目录参数。
+  // 默认：启动服务并自动打开浏览器（除非 --no-open 或 FSD_NO_OPEN=1）。
+  // 打开动作在 server 的 listen 回调里做，靠 FSD_OPEN 开关触发——dev/npm start 不设该值，不会弹窗。
+  if (!process.argv.includes('--no-open') && process.env.FSD_NO_OPEN !== '1') {
+    process.env.FSD_OPEN = '1';
+  }
+  // index.js 顶层会自行 app.listen 并读取 process.argv 里的工作目录参数（--no-open 以 - 开头，不会被当成路径）。
   // 必须转成 file:// URL：Windows 上绝对路径形如 C:\...，直接 import() 会被 ESM 加载器当成
   // 协议 "c:" 而报 ERR_UNSUPPORTED_ESM_URL_SCHEME（POSIX 下能容忍绝对路径，Windows 不行）。
   const entry = path.join(PKG_ROOT, 'server', 'dist', 'server', 'src', 'index.js');
