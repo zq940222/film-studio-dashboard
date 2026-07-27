@@ -594,6 +594,32 @@ button {
   opacity: 0;
 }
 
+/* ---------------- 音频 ---------------- */
+.audio-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-3);
+}
+
+.audio-item {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.audio-item__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.audio-item audio {
+  width: 100%;
+  height: 36px;
+}
+
 /* ---------------- 画廊 ---------------- */
 .gallery-section {
   margin-bottom: var(--space-6);

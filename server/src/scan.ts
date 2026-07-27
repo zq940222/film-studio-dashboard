@@ -128,7 +128,11 @@ function scanEpisodes(workspace: string, projectDir: string): EpisodeInfo[] {
     }));
     const srtFiles = listFiles(workspace, epDir, new Set(['.srt']));
     const videos = listFiles(workspace, epDir, new Set(['.mp4', '.mov', '.webm']));
-    const bgm = listFiles(workspace, path.join(epDir, 'bgm'), AUDIO_EXT);
+    // 音频：ep 目录直放的 + bgm/ 子目录里的（两处目录不重叠），按名排序
+    const audio = [
+      ...listFiles(workspace, epDir, AUDIO_EXT),
+      ...listFiles(workspace, path.join(epDir, 'bgm'), AUDIO_EXT),
+    ].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
     return {
       ep,
       shotlistPath: fs.existsSync(shotlistFile) ? toRel(workspace, shotlistFile) : null,
@@ -136,7 +140,7 @@ function scanEpisodes(workspace: string, projectDir: string): EpisodeInfo[] {
       shots,
       counts: countShots(shots),
       srt: srtFiles[0]?.path ?? null,
-      bgm: bgm.map((f) => f.path),
+      audio,
       videos: videos.map((f) => f.path),
     };
   });

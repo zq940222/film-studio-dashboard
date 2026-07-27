@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { ProjectDetail } from '../../../shared/types';
 import { usePoll } from '../api';
 import { CopyButton, IconBack, MEDIUM_LABEL, ShotBar, Stages } from '../ui';
+import { AudioTab } from './tabs/AudioTab';
 import { DocsTab } from './tabs/DocsTab';
 import { FinalsTab } from './tabs/FinalsTab';
 import { GalleryTab } from './tabs/GalleryTab';
@@ -10,6 +11,7 @@ import { ShotsTab } from './tabs/ShotsTab';
 const TABS = [
   { key: 'shots', label: '镜头' },
   { key: 'gallery', label: '设定图' },
+  { key: 'audio', label: '音频' },
   { key: 'docs', label: '文档' },
   { key: 'finals', label: '成片与发布' },
 ] as const;
@@ -27,6 +29,8 @@ export function Project({ dir, onBack }: { dir: string; onBack: () => void }) {
         return <ShotsTab detail={data} />;
       case 'gallery':
         return <GalleryTab detail={data} />;
+      case 'audio':
+        return <AudioTab detail={data} />;
       case 'docs':
         return <DocsTab detail={data} />;
       case 'finals':

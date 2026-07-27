@@ -69,7 +69,7 @@ export interface EpisodeInfo {
   shots: Shot[];
   counts: ShotCounts;
   srt: string | null;
-  bgm: string[]; // bgm/ 下的音频文件
+  audio: FileEntry[]; // ep 目录及 bgm/ 下的音频文件（BGM 等，供试听）
   videos: string[]; // ep 目录下全部 mp4（含未收编中间产物）
 }
 
