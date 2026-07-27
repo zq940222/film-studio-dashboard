@@ -91,7 +91,8 @@ export function FinalsTab({ detail }: { detail: ProjectDetail }) {
           <div className="finals-grid">
             {detail.finals.map((f) => (
               <article key={f.path} className="card final-card">
-                <video src={mediaUrl(f.path)} controls preload="metadata" />
+                {/* #t=0.1：显示首帧作为封面，而非黑帧 */}
+                <video src={`${mediaUrl(f.path)}#t=0.1`} controls preload="metadata" />
                 <span className="mono dim" style={{ fontSize: 12 }}>
                   {f.name} · {(f.size / 1024 / 1024).toFixed(1)} MB
                 </span>

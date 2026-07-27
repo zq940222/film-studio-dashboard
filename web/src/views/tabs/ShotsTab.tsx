@@ -15,13 +15,34 @@ function ShotCard({ shot, onPlay }: { shot: Shot; onPlay: (src: string) => void 
         {typeof shot.duration === 'number' && <span className="dim mono" style={{ fontSize: 11 }}>{shot.duration}s</span>}
       </div>
       {shot.file && (
-        <video
-          src={mediaUrl(shot.file)}
-          preload="metadata"
-          muted
+        <div
+          className="shot-video"
           onClick={() => onPlay(mediaUrl(shot.file!))}
-          title="点击放大播放"
-        />
+          title="悬停预览 · 点击放大播放"
+        >
+          <video
+            // #t=0.1 让浏览器定位到 0.1s 并显示该帧作为封面（否则 preload=metadata 只是黑帧）；
+            // /media 支持 Range，seek 才成立。
+            src={`${mediaUrl(shot.file)}#t=0.1`}
+            preload="metadata"
+            muted
+            loop
+            playsInline
+            onMouseEnter={(e) => void e.currentTarget.play().catch(() => undefined)}
+            onMouseLeave={(e) => {
+              const v = e.currentTarget;
+              v.pause();
+              try {
+                v.currentTime = 0.1;
+              } catch {
+                /* 忽略：还没加载出可 seek 的帧 */
+              }
+            }}
+          />
+          <span className="shot-video__play" aria-hidden>
+            ▶
+          </span>
+        </div>
       )}
       {shot.prompt && <p className="shot-card__prompt">{shot.prompt}</p>}
       <div className="shot-card__meta">
