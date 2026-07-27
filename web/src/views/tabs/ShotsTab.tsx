@@ -71,7 +71,7 @@ function EpisodeBlock({ ep, onPlay }: { ep: EpisodeInfo; onPlay: (src: string) =
         {ep.counts.submitted > 0 && ` · ${ep.counts.submitted} 生成中`}
         {ep.counts.failed > 0 && ` · ${ep.counts.failed} 失败`}
         {ep.srt && ' · 有字幕'}
-        {ep.bgm.length > 0 && ` · BGM×${ep.bgm.length}`}
+        {ep.audio.length > 0 && ` · 音频×${ep.audio.length}`}
       </h3>
       {ep.shots.length === 0 ? (
         <div className="empty card">该集还没有 shotlist</div>
