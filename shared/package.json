@@ -1,0 +1,5 @@
+{
+  "name": "@film-studio-dashboard/shared",
+  "private": true,
+  "type": "module"
+}
