@@ -4,7 +4,7 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); // .../<pkg>/bin
 const PKG_ROOT = path.resolve(HERE, '..');
@@ -55,5 +55,8 @@ if (sub === 'update' || sub === 'upgrade') {
   printHelp();
 } else {
   // 默认：启动服务。index.js 顶层会自行 app.listen 并读取 process.argv 里的工作目录参数。
-  await import(path.join(PKG_ROOT, 'server', 'dist', 'server', 'src', 'index.js'));
+  // 必须转成 file:// URL：Windows 上绝对路径形如 C:\...，直接 import() 会被 ESM 加载器当成
+  // 协议 "c:" 而报 ERR_UNSUPPORTED_ESM_URL_SCHEME（POSIX 下能容忍绝对路径，Windows 不行）。
+  const entry = path.join(PKG_ROOT, 'server', 'dist', 'server', 'src', 'index.js');
+  await import(pathToFileURL(entry).href);
 }
