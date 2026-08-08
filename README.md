@@ -18,18 +18,26 @@ Prerequisite: Node ≥ 18 installed. The release ships prebuilt, so installation
 ```bash
 # Install (from the GitHub release — prebuilt, no npm account needed)
 npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
-
-# Run (the working directory is optional — you can pick it in the UI after launch)
-film-studio-dashboard "D:/your-workspace"
-# The short alias works too: fsd "D:/your-workspace"
-
-# Update to the latest release (re-pulls the same URL)
-film-studio-dashboard update
 ```
 
-Open <http://127.0.0.1:5799>. The most recently used working directory is remembered in `~/.film-studio-dashboard/config.json`, so it's one click next time. Set the `PORT` env var to change the port.
+Once installed, **the daily launch command is three letters**:
 
-Other subcommands: `film-studio-dashboard version` / `help`.
+```bash
+fsd
+```
+
+No arguments needed — it reopens the working directory you used last (remembered in `~/.film-studio-dashboard/config.json`) and opens the browser for you. Pass an argument only to switch directories or do something else:
+
+```bash
+fsd "D:/your-workspace"   # switch working directory (optional — you can also pick it in the UI)
+fsd update                # update to the latest release (re-pulls the same URL)
+fsd version               # print the version
+fsd help                  # print help
+```
+
+> `fsd` is the short alias of `film-studio-dashboard`, installed alongside it; the two are interchangeable in every command above.
+
+Open <http://127.0.0.1:5799>. Set the `PORT` env var to change the port, or pass `--no-open` to launch without opening the browser.
 
 ## Run from source / development
 

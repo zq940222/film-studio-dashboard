@@ -12,6 +12,7 @@ import type {
   PublishInfo,
   Shot,
   ShotCounts,
+  ShotStatus,
   StageKey,
   StageStatus,
 } from '../../shared/types.js';
@@ -54,6 +55,55 @@ function resolveShotFile(
     }
   }
   return norm; // 落盘位置没找到：退回归一化原值（与旧行为一致）
+}
+
+/**
+ * 契约（插件仓 agents/cinematographer.md）规定镜头字段是 `id` / `status` / `file`，四态为
+ * pending|submitted|success|failed。但实际落盘的 shotlist.json 存在别名漂移——同一工作区里
+ * 见过：路径写成 `output`、镜号写成 `shot_id`/`shot`、状态写成 `done`/`querying`。
+ * 仪表盘是只读观测面、不回写工作区，所以容错只能做在读取侧：契约名优先、别名兜底，
+ * 未知值一律原样透传（计数落进 pending 桶，与旧行为一致）。
+ */
+const ID_KEYS = ['id', 'shot_id', 'shot'] as const;
+const FILE_KEYS = ['file', 'output'] as const;
+const CONTRACT_STATUS = new Set<string>(['pending', 'submitted', 'success', 'failed']);
+const STATUS_ALIAS: Record<string, ShotStatus> = {
+  done: 'success', // 已下载收货
+  querying: 'submitted', // 已提交、轮询中
+};
+
+function firstString(raw: Record<string, unknown>, keys: readonly string[]): unknown {
+  for (const k of keys) {
+    const v = raw[k];
+    if (typeof v === 'string' && v.trim()) return v;
+  }
+  return undefined;
+}
+
+function normalizeStatus(raw: unknown): ShotStatus | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  const v = raw.trim().toLowerCase();
+  if (CONTRACT_STATUS.has(v)) return v as ShotStatus;
+  // 未知状态保留原文：界面照旧显示该字符串，countShots 仍按 pending 计
+  return STATUS_ALIAS[v] ?? (raw as ShotStatus);
+}
+
+function normalizeShot(
+  workspace: string,
+  projectDir: string,
+  epDir: string,
+  raw: Shot,
+  index: number,
+): Shot {
+  const r = raw as Record<string, unknown>;
+  const id = firstString(r, ID_KEYS);
+  return {
+    ...raw,
+    // 兜底用序号，保证镜号非空、前端 key 唯一（缺 id 的 shotlist 见过）
+    id: typeof id === 'string' ? id.trim() : `#${index + 1}`,
+    status: normalizeStatus(r.status),
+    file: resolveShotFile(workspace, projectDir, epDir, firstString(r, FILE_KEYS)),
+  };
 }
 
 function safeReadJson<T>(file: string): T | null {
@@ -122,10 +172,9 @@ function scanEpisodes(workspace: string, projectDir: string): EpisodeInfo[] {
     const epDir = path.join(footageDir, ep);
     const shotlistFile = path.join(epDir, 'shotlist.json');
     const shotlist = safeReadJson<{ ratio?: string; shots?: Shot[] }>(shotlistFile);
-    const shots = (Array.isArray(shotlist?.shots) ? shotlist.shots : []).map((s) => ({
-      ...s,
-      file: resolveShotFile(workspace, projectDir, epDir, s.file),
-    }));
+    const shots = (Array.isArray(shotlist?.shots) ? shotlist.shots : []).map((s, i) =>
+      normalizeShot(workspace, projectDir, epDir, s, i),
+    );
     const srtFiles = listFiles(workspace, epDir, new Set(['.srt']));
     const videos = listFiles(workspace, epDir, new Set(['.mp4', '.mov', '.webm']));
     // 音频：ep 目录直放的 + bgm/ 子目录里的（两处目录不重叠），按名排序
