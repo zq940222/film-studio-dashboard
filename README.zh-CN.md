@@ -18,18 +18,26 @@
 ```bash
 # 安装（从 GitHub Release 装预构建包，无需 npm 账号）
 npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
-
-# 运行（工作目录可省略，启动后在页面里选择）
-film-studio-dashboard "D:/你的创作工作区"
-# 短别名亦可：fsd "D:/你的创作工作区"
-
-# 更新到最新版（重新拉取同一条 Release URL）
-film-studio-dashboard update
 ```
 
-打开 <http://127.0.0.1:5799>。最近使用的工作目录会记在 `~/.film-studio-dashboard/config.json`，下次一点即开。环境变量 `PORT` 可改端口。
+装完之后，**日常启动只要三个字母**：
 
-其他子命令：`film-studio-dashboard version` / `help`。
+```bash
+fsd
+```
+
+裸敲即可——自动打开上次用过的工作目录（记在 `~/.film-studio-dashboard/config.json`）并弹出浏览器。只有换目录或做别的事时才需要带参数：
+
+```bash
+fsd "D:/你的创作工作区"   # 切换工作目录（也可省略，启动后在页面里"浏览…"挑选）
+fsd update               # 更新到最新发布版（重新拉取同一条 Release URL）
+fsd version              # 版本号
+fsd help                 # 帮助
+```
+
+> `fsd` 是 `film-studio-dashboard` 的短别名，随全局安装一起装好；上面每条命令里两者完全等价。
+
+打开 <http://127.0.0.1:5799>。环境变量 `PORT` 可改端口；加 `--no-open` 则启动但不自动弹浏览器。
 
 ## 从源码运行 / 开发
 

@@ -18,18 +18,26 @@
 ```bash
 # インストール（GitHub Release のビルド済みパッケージ、npm アカウント不要）
 npm i -g https://github.com/zq940222/film-studio-dashboard/releases/latest/download/film-studio-dashboard.tgz
-
-# 起動（作業ディレクトリは省略可。起動後に画面で選べます）
-film-studio-dashboard "D:/your-workspace"
-# 短いエイリアスも使えます：fsd "D:/your-workspace"
-
-# 最新版に更新（同じ URL を取り直す）
-film-studio-dashboard update
 ```
 
-<http://127.0.0.1:5799> を開きます。最後に使った作業ディレクトリは `~/.film-studio-dashboard/config.json` に記録され、次回はワンクリックで開けます。環境変数 `PORT` でポートを変更できます。
+インストール後、**日々の起動はこの 3 文字だけ**です：
 
-その他のサブコマンド：`film-studio-dashboard version` / `help`。
+```bash
+fsd
+```
+
+引数は不要です——前回使った作業ディレクトリ（`~/.film-studio-dashboard/config.json` に記録）を開き、ブラウザも自動で立ち上がります。ディレクトリを切り替えるときなどだけ引数を渡します：
+
+```bash
+fsd "D:/your-workspace"   # 作業ディレクトリを切り替え（省略可。起動後に画面でも選べます）
+fsd update                # 最新リリースに更新（同じ URL を取り直す）
+fsd version               # バージョンを表示
+fsd help                  # ヘルプを表示
+```
+
+> `fsd` は `film-studio-dashboard` の短いエイリアスで、グローバルインストール時に一緒に入ります。上記のどのコマンドでも両者は完全に等価です。
+
+<http://127.0.0.1:5799> を開きます。環境変数 `PORT` でポートを変更でき、`--no-open` を付けるとブラウザを自動で開きません。
 
 ## ソースから実行 / 開発
 
